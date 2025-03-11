@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BIT-ID</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<style>
+    body {
+        font-family: 'Inter', sans-serif;
+        background-color: #ffffff;
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        box-sizing: border-box;
+    }
+    .container {
+        background-color: #ffffff;
+        padding: 2rem;
+        border-radius: 15px;
+        width: 90%;
+        max-width: 400px;
+        text-align: center;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    .logo {
+        font-size: clamp(1.5rem, 5vw, 2rem);
+        font-weight: 600;
+        color: #1a73e8;
+        margin-bottom: 1.5rem;
+    }
+    input[type="text"], input[type="password"] {
+        width: 100%;
+        padding: 1rem;
+        margin: 0.5rem 0;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        background-color: #f5f5f5;
+        font-size: clamp(0.8rem, 2.5vw, 1rem);
+        text-transform: uppercase;
+        outline: none;
+        box-sizing: border-box;
+    }
+    button {
+        width: 100%;
+        padding: 1rem;
+        margin: 0.5rem 0;
+        background-color: #e8f0fe;
+        color: #1a73e8;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        text-transform: uppercase;
+        font-weight: 500;
+        font-size: clamp(0.8rem, 2.5vw, 1rem);
+        transition: background-color 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+    button:hover {
+        background-color: #d2e3fc;
+    }
+    .social-button {
+        background-color: #ffffff;
+        border: 1px solid #e0e0e0;
+        color: #666;
+    }
+    .social-button:hover {
+        background-color: #f5f5f5;
+    }
+    .divider {
+        margin: 1rem 0;
+        color: #666;
+        font-size: clamp(0.8rem, 2.5vw, 1rem);
+    }
+    .link {
+        display: block;
+        margin-top: 1rem;
+        color: #1a73e8;
+        text-decoration: none;
+        font-size: clamp(0.7rem, 2vw, 0.9rem);
+        text-transform: uppercase;
+    }
+    .link:hover {
+        text-decoration: underline;
+    }
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+    .modal-content {
+        background-color: #ffffff;
+        padding: 2rem;
+        border-radius: 15px;
+        text-align: center;
+        max-width: 90%;
+        width: 400px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        animation: slideIn 0.3s ease-out;
+    }
+    .modal-content p {
+        margin: 0 0 1.5rem 0;
+        font-size: clamp(0.9rem, 3vw, 1rem);
+        color: #333;
+    }
+    .modal-buttons button {
+        width: auto;
+        padding: 0.5rem 1.5rem;
+        margin: 0;
+    }
+    .modal-buttons .cancel {
+        background-color: #ffffff;
+        border: 1px solid #e0e0e0;
+        color: #666;
+    }
+    .modal-buttons .cancel:hover {
+        background-color: #f5f5f5;
+    }
+    @keyframes slideIn {
+        from { transform: translateY(-20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+    @media (max-width: 600px) {
+        .container { padding: 1.5rem; width: 95%; }
+        input[type="text"], input[type="password"] { padding: 0.8rem; }
+        button { padding: 0.8rem; }
+    }
+</style>
+
+<body>
+    <div class="container" id="authSection">
+        <div class="logo">BIT-ID</div>
+        <form id="loginForm">
+            <input type="text" id="username" placeholder="NOME DE USUÁRIO" pattern="[A-Za-z0-9]+" title="Apenas letras e números são permitidos" required>
+            <input type="password" id="password" placeholder="SENHA" required>
+            <button type="submit"><i class="fas fa-sign-in-alt"></i> ENTRAR</button>
+        </form>
+        <button onclick="window.location.href='signup.html'"><i class="fas fa-user-plus"></i> CADASTRAR</button>
+        <div class="divider">OU</div>
+        <button class="social-button" onclick="loginWithGoogle()"><i class="fab fa-google"></i> ENTRAR COM GOOGLE</button>
+        <button class="social-button" onclick="loginWithApple()"><i class="fab fa-apple"></i> ENTRAR COM APPLE</button>
+        <a href="#" class="link">ESQUECEU A SENHA?</a>
+    </div>
+
+    <div class="modal" id="customModal">
+        <div class="modal-content">
+            <p id="modalMessage"></p>
+            <div class="modal-buttons">
+                <button class="cancel" onclick="closeModal()">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script>
+    <script src="https://apis.google.com/js/api.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBEeFTRzAT4feKDl6qrl4-_yqOxgIBU5ZI",
+            authDomain: "bit-id.firebaseapp.com",
+            projectId: "bit-id",
+            storageBucket: "bit-id.firebasestorage.app",
+            messagingSenderId: "1087293086264",
+            appId: "1:1087293086264:web:09ab9ca947786f3001e4cd"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        const storage = firebase.storage();
+
+        const googleProvider = new firebase.auth.GoogleAuthProvider();
+        googleProvider.addScope('https://www.googleapis.com/auth/userinfo.profile');
+        const appleProvider = new firebase.auth.OAuthProvider('apple.com');
+
+        function showModal(message) {
+            document.getElementById("customModal").style.display = "flex";
+            document.getElementById("modalMessage").textContent = message;
+        }
+
+        function closeModal() {
+            document.getElementById("customModal").style.display = "none";
+        }
+
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                localStorage.setItem("uid", user.uid);
+                checkRequiredFields(user);
+            }
+        });
+
+        document.getElementById("loginForm").addEventListener("submit", function(e) {
+            e.preventDefault();
+
+            const username = document.getElementById("username").value.toUpperCase();
+            const password = document.getElementById("password").value;
+            const usernameRegex = /^[A-Za-z0-9]+$/;
+
+            if (!usernameRegex.test(username)) {
+                showModal("ERRO: O nome de usuário deve conter apenas letras e números!");
+                return;
+            }
+
+            const email = `${username.toLowerCase()}@bit-id.com`;
+            auth.signInWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    const user = userCredential.user;
+                    showModal("BEM-VINDO!");
+                    setTimeout(() => window.location.href = "contatos.html", 2000);
+                })
+                .catch((error) => showModal("ERRO: " + error.message));
+        });
+
+        function checkRequiredFields(user) {
+            db.collection("users").doc(user.uid).get()
+                .then((doc) => {
+                    if (doc.exists) {
+                        const data = doc.data();
+                        if (!data.fullName || !data.username) {
+                            showModal("Complete seu cadastro!");
+                            setTimeout(() => window.location.href = "signup.html", 2000);
+                        } else {
+                            showModal("BEM-VINDO!");
+                            setTimeout(() => window.location.href = "contatos.html", 2000);
+                        }
+                    } else {
+                        showModal("Complete seu cadastro!");
+                        setTimeout(() => window.location.href = "signup.html", 2000);
+                    }
+                })
+                .catch((error) => showModal("ERRO AO VERIFICAR PERFIL: " + error.message));
+        }
+
+        function loginWithGoogle() {
+            auth.signInWithPopup(googleProvider)
+                .then((result) => {
+                    const user = result.user;
+                    const username = user.email.split("@")[0].toUpperCase();
+                    const preFillData = {
+                        username: username,
+                        fullName: user.displayName ? user.displayName.toUpperCase() : "",
+                        email: user.email.toUpperCase(),
+                        photo: user.photoURL || ""
+                    };
+                    localStorage.setItem("preFillData", JSON.stringify(preFillData));
+
+                    gapi.load('client', () => {
+                        gapi.client.init({
+                            apiKey: firebaseConfig.apiKey,
+                            discoveryDocs: ["https://people.googleapis.com/$discovery/rest?version=v1"],
+                            scope: 'https://www.googleapis.com/auth/userinfo.profile'
+                        }).then(() => {
+                            gapi.client.people.people.get({
+                                'resourceName': 'people/me',
+                                'personFields': 'names,photos'
+                            }).then((response) => {
+                                const person = response.result;
+                                if (person.names && person.names.length > 0) {
+                                    preFillData.fullName = person.names[0].displayName.toUpperCase();
+                                }
+                                if (person.photos && person.photos.length > 0) {
+                                    preFillData.photo = person.photos[0].url;
+                                }
+                                localStorage.setItem("preFillData", JSON.stringify(preFillData));
+                            });
+                        });
+                    });
+
+                    db.collection("users").doc(user.uid).set({
+                        username: username,
+                        fullName: preFillData.fullName,
+                        email: user.email.toUpperCase(),
+                        photo: preFillData.photo
+                    }, { merge: true }).then(() => {
+                        checkRequiredFields(user);
+                    });
+                })
+                .catch((error) => showModal("ERRO NO GOOGLE: " + error.message));
+        }
+
+        function loginWithApple() {
+            auth.signInWithPopup(appleProvider)
+                .then((result) => {
+                    const user = result.user;
+                    const username = user.email ? user.email.split("@")[0].toUpperCase() : "APPLEUSER" + Math.floor(Math.random() * 10000);
+                    const preFillData = {
+                        username: username,
+                        fullName: result.additionalUserInfo.profile?.fullName?.givenName ? 
+                            `${result.additionalUserInfo.profile.fullName.givenName} ${result.additionalUserInfo.profile.fullName.familyName}`.toUpperCase() : "",
+                        email: user.email ? user.email.toUpperCase() : ""
+                    };
+                    localStorage.setItem("preFillData", JSON.stringify(preFillData));
+
+                    db.collection("users").doc(user.uid).set({
+                        username: username,
+                        email: user.email ? user.email.toUpperCase() : "",
+                        fullName: preFillData.fullName
+                    }, { merge: true }).then(() => {
+                        checkRequiredFields(user);
+                    });
+                })
+                .catch((error) => showModal("ERRO NO APPLE: " + error.message));
+        }
+    </script>
+
+    <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'91dcad2e2dbfaddd',t:'MTc0MTU0NTM3MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+    <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'91dd0add08b453aa',t:'MTc0MTU0OTIwOS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+</body>
+</html>

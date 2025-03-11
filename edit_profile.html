@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BIT-ID - MEU PERFIL</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #ffffff;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: #1a73e8;
+            color: white;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            box-sizing: border-box;
+            cursor: pointer;
+        }
+        .navbar .logo a {
+            color: white;
+            text-decoration: none;
+            font-size: clamp(1.2rem, 3vw, 1.5rem);
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .navbar .user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .navbar .user-avatar {
+            width: 2rem;
+            height: 2rem;
+            background-color: white;
+            background-size: cover;
+            background-position: center;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: clamp(0.8rem, 2vw, 1rem);
+            color: #1a73e8;
+        }
+        .navbar .username {
+            font-size: clamp(1rem, 2.5vw, 1.2rem);
+            font-weight: 500;
+        }
+        .navbar .menu-container {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .navbar .notification-dot {
+            width: 0.5rem;
+            height: 0.5rem;
+            background-color: red;
+            border-radius: 50%;
+        }
+        .navbar .menu-text {
+            font-size: clamp(1rem, 2.5vw, 1.2rem);
+            font-weight: 500;
+            color: white;
+            padding: 0.3rem 0.8rem;
+            transition: background-color 0.3s;
+        }
+        .navbar .menu-text:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+        }
+        .navbar .profile-dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background-color: #1a73e8;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            min-width: 150px;
+            z-index: 1001;
+        }
+        .navbar .profile-dropdown.active {
+            display: block;
+        }
+        .navbar .profile-dropdown a {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.8rem 1rem;
+            color: white;
+            text-decoration: none;
+            text-transform: uppercase;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+        .navbar .profile-dropdown a:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+        }
+        .content {
+            margin-top: 70px;
+            padding: 3vw;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1vw;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 5vw;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 800px;
+            box-sizing: border-box;
+            text-align: center;
+        }
+        h2 {
+            color: #333;
+            text-transform: uppercase;
+            text-align: center;
+            font-size: clamp(0.9rem, 3.5vw, 1rem);
+            margin: 0 0 1vw 0;
+            font-weight: 500;
+        }
+        .section-title {
+            color: #333;
+            font-size: clamp(1rem, 3vw, 1.2rem);
+            margin: 1.5rem 0 1rem 0;
+            text-align: left;
+            font-weight: 500;
+        }
+        input[type="text"], input[type="date"], textarea {
+            width: 100%;
+            padding: 2.5vw;
+            margin: 1vw 0;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            box-sizing: border-box;
+            background-color: #f5f5f5;
+            font-size: clamp(0.7rem, 2.5vw, 0.8rem);
+            text-transform: uppercase;
+            outline: none;
+        }
+        input[readonly], textarea[readonly] {
+            background-color: #fafafa;
+            cursor: default;
+        }
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        .photo-container {
+            position: relative;
+            width: 150px;
+            height: 150px;
+            margin: 0 auto 1vw auto;
+            cursor: pointer;
+        }
+        .photo-preview {
+            width: 100%;
+            height: 100%;
+            border-radius: 8px;
+            object-fit: cover;
+            background-color: transparent;
+            border: 1px solid #e0e0e0;
+        }
+        .photo-preview:empty::after {
+            content: "ADICIONAR FOTO";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #666;
+            font-size: clamp(0.8rem, 2.5vw, 1rem);
+            text-transform: uppercase;
+        }
+        .photo-edit-icon {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            font-size: 1rem;
+            color: #1a73e8;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 2px;
+            border-radius: 50%;
+        }
+        input[type="file"] {
+            display: none;
+        }
+        button {
+            width: 100%;
+            padding: 1.5vw;
+            margin: 1vw 0;
+            background-color: #e8f0fe;
+            color: #1a73e8;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-weight: 500;
+            font-size: clamp(0.7rem, 2.5vw, 0.8rem);
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #d2e3fc;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background-color: #ffffff;
+            padding: 2rem;
+            border-radius: 15px;
+            text-align: center;
+            max-width: 90%;
+            width: 400px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            animation: slideIn 0.3s ease-out;
+        }
+        .modal-content p {
+            margin: 0 0 1.5rem 0;
+            font-size: clamp(0.9rem, 3vw, 1rem);
+            color: #333;
+        }
+        .modal-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+        .modal-buttons button {
+            width: auto;
+            padding: 0.5rem 1.5rem;
+            margin: 0;
+        }
+        .modal-buttons .cancel {
+            background-color: #ffffff;
+            border: 1px solid #e0e0e0;
+            color: #666;
+        }
+        .modal-buttons .cancel:hover {
+            background-color: #f5f5f5;
+        }
+        @keyframes slideIn {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        @media (max-width: 600px) {
+            .content { padding: 2vw; margin-top: 60px; }
+            .container { padding: 4vw; width: 95%; max-width: 500px; }
+            .navbar { padding: 0.8rem; }
+            .navbar .username, .navbar .menu-text {
+                font-size: clamp(0.9rem, 2.5vw, 1rem);
+            }
+            .navbar .menu-text { padding: 0.2rem 0.6rem; }
+            .navbar .profile-dropdown { right: 0.8rem; }
+            input[type="text"], input[type="date"], textarea { padding: 3vw; }
+            button { padding: 4vw; font-size: clamp(0.9rem, 3.5vw, 1rem); }
+            h2 { font-size: clamp(1.2rem, 5vw, 1.5rem); margin: 0 0 4vw 0; }
+            .photo-container { width: 120px; height: 120px; }
+        }
+        @media (min-width: 601px) {
+            .container { padding: 0.5rem; }
+            input[type="text"], input[type="date"], textarea { padding: 0.3rem; }
+            button { padding: 0.3rem; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar" id="navbar">
+        <div class="logo"><a href="contatos.html">BIT-ID</a></div>
+        <div class="user-info">
+            <div class="user-avatar" id="userAvatar"></div>
+            <span class="username" id="username"></span>
+        </div>
+        <div class="menu-container">
+            <span class="notification-dot" id="notificationDot" style="display: none;"></span>
+            <div class="menu-text" id="menuText">Menu</div>
+        </div>
+        <div class="profile-dropdown" id="profileDropdown">
+            <a href="edit_profile.html">Meu Perfil</a>
+            <a href="requests.html"><span class="notification-dot" id="requestsNotification" style="display: none;"></span>Solicitações</a>
+            <a href="shared_by_me.html">Dados Compartilhados</a>
+            <a href="#" onclick="logout()">Sair</a>
+        </div>
+    </nav>
+
+    <div class="content">
+        <div class="container">
+            <h2>MEU PERFIL</h2>
+            <div class="section-title">Pessoal</div>
+            <div class="photo-container" onclick="document.getElementById('photo').click()">
+                <img id="photoPreview" class="photo-preview" src="" alt="Foto do perfil">
+                <i class="fas fa-pencil-alt photo-edit-icon"></i>
+                <input type="file" id="photo" accept="image/*" onchange="previewPhoto(event)">
+            </div>
+            <input type="text" id="fullName" placeholder="NOME COMPLETO" readonly required>
+            <input type="text" id="personalPhone" placeholder="TELEFONE PESSOAL" readonly>
+            <input type="text" id="personalEmail" placeholder="E-MAIL PESSOAL" readonly>
+            <input type="text" id="residentialAddress" placeholder="ENDEREÇO RESIDENCIAL" readonly>
+            <input type="date" id="birthDate" placeholder="DATA DE NASCIMENTO" readonly>
+            <input type="text" id="cpf" placeholder="CPF" readonly>
+            <input type="text" id="profession" placeholder="PROFISSÃO" readonly>
+            <textarea id="biography" placeholder="BIOGRAFIA" readonly></textarea>
+            <input type="text" id="socialProfile1" placeholder="PERFIL DE REDE SOCIAL 1" readonly>
+            <input type="text" id="socialProfile2" placeholder="PERFIL DE REDE SOCIAL 2" readonly>
+            <input type="text" id="socialProfile3" placeholder="PERFIL DE REDE SOCIAL 3" readonly>
+
+            <div class="section-title">Comercial</div>
+            <input type="text" id="businessPhone" placeholder="TELEFONE COMERCIAL" readonly>
+            <input type="text" id="businessEmail" placeholder="E-MAIL COMERCIAL" readonly>
+            <input type="text" id="businessAddress" placeholder="ENDEREÇO COMERCIAL" readonly>
+            <input type="text" id="businessProfession" placeholder="PROFISSÃO/CARGO" readonly>
+            <input type="text" id="businessSocialProfile1" placeholder="PERFIL DE REDE SOCIAL EMPRESARIAL 1" readonly>
+            <input type="text" id="businessSocialProfile2" placeholder="PERFIL DE REDE SOCIAL EMPRESARIAL 2" readonly>
+            <input type="text" id="businessSocialProfile3" placeholder="PERFIL DE REDE SOCIAL EMPRESARIAL 3" readonly>
+
+            <button onclick="confirmSave()">SALVAR</button>
+        </div>
+    </div>
+
+    <div class="modal" id="customModal">
+        <div class="modal-content">
+            <p id="modalMessage"></p>
+            <div class="modal-buttons">
+                <button class="cancel" onclick="closeModal()">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="confirmModal">
+        <div class="modal-content">
+            <p>Deseja salvar as alterações?</p>
+            <div class="modal-buttons">
+                <button onclick="saveProfile()">Sim</button>
+                <button class="cancel" onclick="closeConfirmModal()">Não</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBEeFTRzAT4feKDl6qrl4-_yqOxgIBU5ZI",
+            authDomain: "bit-id.firebaseapp.com",
+            projectId: "bit-id",
+            storageBucket: "bit-id.firebasestorage.app",
+            messagingSenderId: "1087293086264",
+            appId: "1:1087293086264:web:09ab9ca947786f3001e4cd"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        const storage = firebase.storage();
+
+        let tempProfileData = {};
+
+        function showModal(message) {
+            document.getElementById("customModal").style.display = "flex";
+            document.getElementById("modalMessage").textContent = message;
+        }
+
+        function closeModal() {
+            document.getElementById("customModal").style.display = "none";
+        }
+
+        function showConfirmModal() {
+            document.getElementById("confirmModal").style.display = "flex";
+        }
+
+        function closeConfirmModal() {
+            document.getElementById("confirmModal").style.display = "none";
+        }
+
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                loadProfile(user.uid);
+                loadNavbar(user.uid);
+            } else {
+                window.location.href = "index.html";
+            }
+        });
+
+        function loadNavbar(uid) {
+            db.collection("users").doc(uid).get().then((doc) => {
+                if (doc.exists) {
+                    const data = doc.data();
+                    const avatar = document.getElementById("userAvatar");
+                    if (data.photo) {
+                        avatar.style.backgroundImage = `url(${data.photo})`;
+                        avatar.textContent = "";
+                    } else {
+                        avatar.style.backgroundImage = "";
+                        avatar.textContent = data.username ? data.username.charAt(0) : "?";
+                    }
+                    document.getElementById("username").textContent = data.username || "Usuário";
+                }
+            });
+
+            db.collection("permissions").where("target", "==", uid).where("status", "==", "pending").get()
+                .then((querySnapshot) => {
+                    if (!querySnapshot.empty) {
+                        document.getElementById("notificationDot").style.display = "inline-block";
+                        document.getElementById("requestsNotification").style.display = "inline-block";
+                    }
+                });
+        }
+
+        function loadProfile(uid) {
+            db.collection("users").doc(uid).get().then((doc) => {
+                if (doc.exists) {
+                    const data = doc.data();
+                    const photoPreview = document.getElementById("photoPreview");
+                    if (data.photo) {
+                        photoPreview.src = data.photo;
+                    } else {
+                        photoPreview.src = "";
+                    }
+                    document.getElementById("fullName").value = data.fullName || "";
+                    document.getElementById("personalPhone").value = data.personalPhone || "";
+                    document.getElementById("personalEmail").value = data.personalEmail || "";
+                    document.getElementById("residentialAddress").value = data.residentialAddress || "";
+                    document.getElementById("birthDate").value = data.birthDate || "";
+                    document.getElementById("cpf").value = data.cpf || "";
+                    document.getElementById("profession").value = data.profession || "";
+                    document.getElementById("biography").value = data.biography || "";
+                    document.getElementById("socialProfile1").value = data.socialProfile1 || "";
+                    document.getElementById("socialProfile2").value = data.socialProfile2 || "";
+                    document.getElementById("socialProfile3").value = data.socialProfile3 || "";
+                    document.getElementById("businessPhone").value = data.businessPhone || "";
+                    document.getElementById("businessEmail").value = data.businessEmail || "";
+                    document.getElementById("businessAddress").value = data.businessAddress || "";
+                    document.getElementById("businessProfession").value = data.businessProfession || "";
+                    document.getElementById("businessSocialProfile1").value = data.businessSocialProfile1 || "";
+                    document.getElementById("businessSocialProfile2").value = data.businessSocialProfile2 || "";
+                    document.getElementById("businessSocialProfile3").value = data.businessSocialProfile3 || "";
+
+                    tempProfileData = { ...data, photo: data.photo || "" };
+                }
+            }).catch((error) => {
+                showModal("ERRO AO CARREGAR PERFIL: " + error.message);
+            });
+        }
+
+        function previewPhoto(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const photoPreview = document.getElementById("photoPreview");
+                    photoPreview.src = e.target.result;
+                    tempProfileData.photoFile = file;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        document.querySelectorAll('input[readonly], textarea[readonly]').forEach((field) => {
+            field.addEventListener('click', () => {
+                field.removeAttribute('readonly');
+                field.focus();
+            });
+            field.addEventListener('blur', () => {
+                field.setAttribute('readonly', true);
+                tempProfileData[field.id] = field.value.trim();
+            });
+        });
+
+        function confirmSave() {
+            if (Object.keys(tempProfileData).length > 0) {
+                showConfirmModal();
+            } else {
+                showModal("NENHUMA ALTERAÇÃO DETECTADA!");
+            }
+        }
+
+        function saveProfile() {
+            const user = auth.currentUser;
+            const profileData = {
+                fullName: document.getElementById("fullName").value.trim(),
+                personalPhone: document.getElementById("personalPhone").value.trim() || "",
+                personalEmail: document.getElementById("personalEmail").value.trim() || "",
+                residentialAddress: document.getElementById("residentialAddress").value.trim() || "",
+                birthDate: document.getElementById("birthDate").value || "",
+                cpf: document.getElementById("cpf").value.trim() || "",
+                profession: document.getElementById("profession").value.trim() || "",
+                biography: document.getElementById("biography").value.trim() || "",
+                socialProfile1: document.getElementById("socialProfile1").value.trim() || "",
+                socialProfile2: document.getElementById("socialProfile2").value.trim() || "",
+                socialProfile3: document.getElementById("socialProfile3").value.trim() || "",
+                businessPhone: document.getElementById("businessPhone").value.trim() || "",
+                businessEmail: document.getElementById("businessEmail").value.trim() || "",
+                businessAddress: document.getElementById("businessAddress").value.trim() || "",
+                businessProfession: document.getElementById("businessProfession").value.trim() || "",
+                businessSocialProfile1: document.getElementById("businessSocialProfile1").value.trim() || "",
+                businessSocialProfile2: document.getElementById("businessSocialProfile2").value.trim() || "",
+                businessSocialProfile3: document.getElementById("businessSocialProfile3").value.trim() || ""
+            };
+
+            if (!profileData.fullName) {
+                showModal("NOME COMPLETO É OBRIGATÓRIO!");
+                closeConfirmModal();
+                return;
+            }
+
+            if (tempProfileData.photoFile) {
+                const storageRef = storage.ref(`profile_photos/${user.uid}_${Date.now()}`);
+                storageRef.put(tempProfileData.photoFile).then((snapshot) => {
+                    snapshot.ref.getDownloadURL().then((photoURL) => {
+                        profileData.photo = photoURL;
+                        saveToFirestore(user.uid, profileData);
+                    }).catch((error) => {
+                        showModal("ERRO AO FAZER UPLOAD DA FOTO: " + error.message);
+                        closeConfirmModal();
+                    });
+                });
+            } else {
+                profileData.photo = tempProfileData.photo;
+                saveToFirestore(user.uid, profileData);
+            }
+        }
+
+        function saveToFirestore(uid, profileData) {
+            db.collection("users").doc(uid).set(profileData, { merge: true })
+                .then(() => {
+                    showModal("PERFIL SALVO COM SUCESSO!");
+                    tempProfileData = {};
+                    loadNavbar(uid);
+                    loadProfile(uid);
+                    closeConfirmModal();
+                })
+                .catch((error) => {
+                    showModal("ERRO AO SALVAR PERFIL: " + error.message);
+                    closeConfirmModal();
+                });
+        }
+
+        function logout() {
+            auth.signOut().then(() => {
+                window.location.href = "index.html";
+            });
+        }
+
+        const navbar = document.getElementById("navbar");
+        const logo = document.querySelector(".logo");
+        const profileDropdown = document.getElementById("profileDropdown");
+
+        navbar.addEventListener("click", (event) => {
+            if (logo.contains(event.target)) return;
+            profileDropdown.classList.toggle("active");
+            document.getElementById("notificationDot").style.display = "none";
+        });
+
+        document.addEventListener("click", (event) => {
+            if (!navbar.contains(event.target) && !profileDropdown.contains(event.target)) {
+                profileDropdown.classList.remove("active");
+                const user = auth.currentUser;
+                if (user) loadNavbar(user.uid);
+            }
+        });
+    </script>
+    <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'91dd0cf34c3c53b2',t:'MTc0MTU0OTI5NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+</body>
+</html>
