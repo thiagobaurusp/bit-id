@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BIT-ID - GERENCIAR DADOS COMPARTILHADOS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-functions-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #ffffff;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: #1a73e8;
+            color: white;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            box-sizing: border-box;
+            cursor: pointer;
+        }
+        .navbar .logo a {
+            color: white;
+            text-decoration: none;
+            font-size: clamp(1.2rem, 3vw, 1.5rem);
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .navbar .user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .navbar .user-avatar {
+            width: 2rem;
+            height: 2rem;
+            background-color: white;
+            color: #1a73e8;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: clamp(0.8rem, 2vw, 1rem);
+            background-size: cover;
+            background-position: center;
+        }
+        .navbar .username {
+            font-size: clamp(1rem, 2.5vw, 1.2rem);
+            font-weight: 500;
+        }
+        .navbar .menu-container {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .navbar .notification-dot {
+            width: 0.5rem;
+            height: 0.5rem;
+            background-color: red;
+            border-radius: 50%;
+        }
+        .navbar .menu-text {
+            font-size: clamp(1rem, 2.5vw, 1.2rem);
+            font-weight: 500;
+            color: white;
+            padding: 0.3rem 0.8rem;
+            transition: background-color 0.3s;
+        }
+        .navbar .menu-text:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+        }
+        .navbar .profile-dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background-color: #1a73e8;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            min-width: 150px;
+            z-index: 1001;
+        }
+        .navbar .profile-dropdown.active {
+            display: block;
+        }
+        .navbar .profile-dropdown a {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.8rem 1rem;
+            color: white;
+            text-decoration: none;
+            text-transform: uppercase;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+        .navbar .profile-dropdown a:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+        }
+        .content {
+            margin-top: 70px;
+            padding: 3vw;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1vw;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 5vw;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 800px;
+            box-sizing: border-box;
+            text-align: center;
+        }
+        h2 {
+            color: #333;
+            text-transform: uppercase;
+            text-align: center;
+            font-size: clamp(0.9rem, 3.5vw, 1rem);
+            margin: 0 0 1vw 0;
+            font-weight: 500;
+        }
+        .shared-list {
+            max-height: 50vh;
+            overflow-y: auto;
+        }
+        .shared-item {
+            border-bottom: 1px solid #e0e0e0;
+            padding: 1vw 0;
+            font-size: clamp(0.7rem, 2.5vw, 0.8rem);
+            text-transform: uppercase;
+            background-color: #f5f5f5;
+            transition: background-color 0.3s;
+        }
+        .shared-item.highlighted {
+            background-color: #e8f0fe;
+            border: 2px solid #1a73e8;
+        }
+        .shared-item:last-child {
+            border-bottom: none;
+        }
+        .shared-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.5rem;
+        }
+        .shared-avatar {
+            width: 2rem;
+            height: 2rem;
+            background-color: #1a73e8;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1vw;
+            font-size: clamp(0.8rem, 2vw, 1rem);
+        }
+        .shared-name {
+            flex-grow: 1;
+            text-align: left;
+        }
+        button {
+            width: auto;
+            padding: 0.5rem 1rem;
+            background-color: #fce8e6;
+            color: #d93025;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-weight: 500;
+            font-size: clamp(0.7rem, 2.5vw, 0.8rem);
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #fdd6d2;
+        }
+        .fields-section {
+            text-align: left;
+            padding: 0.5rem 1rem;
+        }
+        .fields-section h3 {
+            color: #333;
+            font-size: clamp(0.8rem, 2.5vw, 0.9rem);
+            margin: 0.5rem 0;
+        }
+        .fields-section ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+        .fields-section li {
+            font-size: clamp(0.7rem, 2.5vw, 0.8rem);
+            color: #666;
+            margin: 0.3rem 0;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background-color: #ffffff;
+            padding: 2rem;
+            border-radius: 15px;
+            text-align: center;
+            max-width: 90%;
+            width: 400px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            animation: slideIn 0.3s ease-out;
+        }
+        .modal-content p {
+            margin: 0 0 1.5rem 0;
+            font-size: clamp(0.9rem, 3vw, 1rem);
+            color: #333;
+        }
+        .modal-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+        .modal-buttons button {
+            width: auto;
+            padding: 0.5rem 1.5rem;
+            margin: 0;
+            background-color: #e8f0fe;
+            color: #1a73e8;
+        }
+        .modal-buttons .cancel {
+            background-color: #ffffff;
+            border: 1px solid #e0e0e0;
+            color: #666;
+        }
+        .modal-buttons .cancel:hover {
+            background-color: #f5f5f5;
+        }
+        @keyframes slideIn {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        @media (max-width: 600px) {
+            .content { padding: 2vw; margin-top: 60px; }
+            .container { padding: 4vw; width: 95%; max-width: 500px; }
+            .navbar { padding: 0.8rem; }
+            .navbar .username, .navbar .menu-text {
+                font-size: clamp(0.9rem, 2.5vw, 1rem);
+            }
+            .navbar .menu-text { padding: 0.2rem 0.6rem; }
+            .navbar .profile-dropdown { right: 0.8rem; }
+            button { padding: 4vw; font-size: clamp(0.9rem, 3.5vw, 1rem); }
+            h2 { font-size: clamp(1.2rem, 5vw, 1.5rem); margin: 0 0 4vw 0; }
+        }
+        @media (min-width: 601px) {
+            .container { padding: 0.5rem; }
+            button { padding: 0.3rem 1rem; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar" id="navbar">
+        <div class="logo"><a href="contatos.html">BIT-ID</a></div>
+        <div class="user-info">
+            <div class="user-avatar" id="userAvatar"></div>
+            <span class="username" id="username"></span>
+        </div>
+        <div class="menu-container">
+            <span class="notification-dot" id="notificationDot" style="display: none;"></span>
+            <div class="menu-text" id="menuText">Menu</div>
+        </div>
+        <div class="profile-dropdown" id="profileDropdown">
+            <a href="edit_profile.html">Meu Perfil</a>
+            <a href="requests.html"><span class="notification-dot" id="requestsNotification" style="display: none;"></span>Solicitações</a>
+            <a href="shared_by_me.html">Dados Compartilhados</a>
+            <a href="#" onclick="logout()">Sair</a>
+        </div>
+    </nav>
+
+    <div class="content">
+        <div class="container">
+            <h2>DADOS COMPARTILHADOS</h2>
+            <div class="shared-list" id="sharedList"></div>
+        </div>
+    </div>
+
+    <div class="modal" id="customModal">
+        <div class="modal-content">
+            <p id="modalMessage"></p>
+            <div class="modal-buttons">
+                <button class="cancel" onclick="closeModal()">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="confirmRevokeModal">
+        <div class="modal-content">
+            <p>Tem certeza que deseja revogar o acesso deste contato?</p>
+            <div class="modal-buttons">
+                <button onclick="confirmRevoke()">SIM</button>
+                <button class="cancel" onclick="closeConfirmRevokeModal()">NÃO</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBEeFTRzAT4feKDl6qrl4-_yqOxgIBU5ZI",
+            authDomain: "bit-id.firebaseapp.com",
+            projectId: "bit-id",
+            storageBucket: "bit-id.firebasestorage.app",
+            messagingSenderId: "1087293086264",
+            appId: "1:1087293086264:web:09ab9ca947786f3001e4cd"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        const functions = firebase.functions();
+        const revokeAccess = functions.httpsCallable("revokeAccess");
+
+        let selectedPermissionId = null;
+
+        const fieldLabels = {
+            fullName: "Nome Completo",
+            username: "Usuário",
+            photo: "Foto",
+            personalPhone: "Telefone Pessoal",
+            personalEmail: "E-mail Pessoal",
+            residentialAddress: "Endereço Residencial",
+            birthDate: "Data de Nascimento",
+            profession: "Profissão",
+            biography: "Biografia",
+            socialProfile1: "Perfil de Rede Social 1",
+            socialProfile2: "Perfil de Rede Social 2",
+            socialProfile3: "Perfil de Rede Social 3",
+            businessPhone: "Telefone Comercial",
+            businessEmail: "E-mail Comercial",
+            businessAddress: "Endereço Comercial",
+            businessProfession: "Profissão/Cargo",
+            businessSocialProfile1: "Perfil de Rede Social Empresarial 1",
+            businessSocialProfile2: "Perfil de Rede Social Empresarial 2",
+            businessSocialProfile3: "Perfil de Rede Social Empresarial 3"
+        };
+
+        function showModal(message) {
+            document.getElementById("customModal").style.display = "flex";
+            document.getElementById("modalMessage").textContent = message;
+        }
+
+        function closeModal() {
+            document.getElementById("customModal").style.display = "none";
+        }
+
+        function showConfirmRevokeModal(permissionId) {
+            selectedPermissionId = permissionId;
+            document.getElementById("confirmRevokeModal").style.display = "flex";
+        }
+
+        function closeConfirmRevokeModal() {
+            document.getElementById("confirmRevokeModal").style.display = "none";
+            selectedPermissionId = null;
+        }
+
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                loadSharedData(user.uid);
+                loadNavbar(user.uid);
+            } else {
+                window.location.href = "index.html";
+            }
+        });
+
+        function loadNavbar(uid) {
+            db.collection("users").doc(uid).get().then((doc) => {
+                if (doc.exists) {
+                    const data = doc.data();
+                    const avatar = document.getElementById("userAvatar");
+                    if (data.photo) {
+                        avatar.style.backgroundImage = `url(${data.photo})`;
+                        avatar.textContent = "";
+                    } else {
+                        avatar.style.backgroundImage = "";
+                        avatar.textContent = data.username ? data.username.charAt(0) : "?";
+                    }
+                    document.getElementById("username").textContent = data.username || "Usuário";
+                }
+            });
+
+            db.collection("permissions").where("target", "==", uid).where("status", "==", "pending").get()
+                .then((querySnapshot) => {
+                    if (!querySnapshot.empty) {
+                        document.getElementById("notificationDot").style.display = "inline-block";
+                        document.getElementById("requestsNotification").style.display = "inline-block";
+                    }
+                });
+        }
+
+        function loadSharedData(uid) {
+            const urlParams = new URLSearchParams(window.location.search);
+            const highlightPermissionId = urlParams.get("permissionId");
+
+            db.collection("permissions").where("status", "==", "approved")
+                .where("requester", "==", uid)
+                .get()
+                .then((querySnapshot) => {
+                    const sharedList = document.getElementById("sharedList");
+                    sharedList.innerHTML = "";
+                    if (querySnapshot.empty) {
+                        sharedList.innerHTML = "<p>Nenhum dado compartilhado.</p>";
+                        return;
+                    }
+                    querySnapshot.forEach((doc) => {
+                        const data = doc.data();
+                        db.collection("users").doc(data.target).get()
+                            .then((targetDoc) => {
+                                if (targetDoc.exists) {
+                                    const targetData = targetDoc.data();
+                                    const div = document.createElement("div");
+                                    div.className = "shared-item";
+                                    div.id = `shared-item-${doc.id}`;
+                                    if (doc.id === highlightPermissionId) {
+                                        div.classList.add("highlighted");
+                                    }
+
+                                    const personalFieldsByMe = data.sharedFieldsByRequester.filter(f => 
+                                        !["businessPhone", "businessEmail", "businessAddress", "businessProfession", 
+                                          "businessSocialProfile1", "businessSocialProfile2", "businessSocialProfile3"].includes(f));
+                                    const commercialFieldsByMe = data.sharedFieldsByRequester.filter(f => 
+                                        ["businessPhone", "businessEmail", "businessAddress", "businessProfession", 
+                                         "businessSocialProfile1", "businessSocialProfile2", "businessSocialProfile3"].includes(f));
+                                    const personalFieldsByTarget = data.sharedFieldsByTarget.filter(f => 
+                                        !["businessPhone", "businessEmail", "businessAddress", "businessProfession", 
+                                          "businessSocialProfile1", "businessSocialProfile2", "businessSocialProfile3"].includes(f));
+                                    const commercialFieldsByTarget = data.sharedFieldsByTarget.filter(f => 
+                                        ["businessPhone", "businessEmail", "businessAddress", "businessProfession", 
+                                         "businessSocialProfile1", "businessSocialProfile2", "businessSocialProfile3"].includes(f));
+
+                                    div.innerHTML = `
+                                        <div class="shared-header">
+                                            <div class="shared-avatar">${targetData.username ? targetData.username.charAt(0) : '?'}</div>
+                                            <div class="shared-name">${targetData.fullName || "Usuário desconhecido"} (@${targetData.username})</div>
+                                            <button onclick="showConfirmRevokeModal('${doc.id}')"><i class="fas fa-trash"></i> REVOGAR ACESSO</button>
+                                        </div>
+                                        <div class="fields-section">
+                                            <h3>Compartilhado por Mim - Pessoal</h3>
+                                            <ul>${personalFieldsByMe.map(f => `<li>${fieldLabels[f]}</li>`).join('') || '<li>Nenhum dado</li>'}</ul>
+                                            <h3>Compartilhado por Mim - Comercial</h3>
+                                            <ul>${commercialFieldsByMe.map(f => `<li>${fieldLabels[f]}</li>`).join('') || '<li>Nenhum dado</li>'}</ul>
+                                            <h3>Compartilhado pelo Contato - Pessoal</h3>
+                                            <ul>${personalFieldsByTarget.map(f => `<li>${fieldLabels[f]}</li>`).join('') || '<li>Nenhum dado</li>'}</ul>
+                                            <h3>Compartilhado pelo Contato - Comercial</h3>
+                                            <ul>${commercialFieldsByTarget.map(f => `<li>${fieldLabels[f]}</li>`).join('') || '<li>Nenhum dado</li>'}</ul>
+                                        </div>
+                                    `;
+                                    sharedList.appendChild(div);
+
+                                    if (doc.id === highlightPermissionId) {
+                                        setTimeout(() => {
+                                            div.scrollIntoView({ behavior: "smooth", block: "center" });
+                                        }, 100);
+                                    }
+                                }
+                            });
+                    });
+                });
+        }
+
+        function confirmRevoke() {
+            if (!selectedPermissionId) return;
+
+            revokeAccess({ permissionId: selectedPermissionId })
+                .then(() => {
+                    showModal("ACESSO REVOGADO COM SUCESSO!");
+                    closeConfirmRevokeModal();
+                    loadSharedData(auth.currentUser.uid);
+                })
+                .catch((error) => {
+                    showModal("ERRO AO REVOGAR ACESSO: " + error.message);
+                });
+        }
+
+        function logout() {
+            auth.signOut().then(() => {
+                window.location.href = "index.html";
+            });
+        }
+
+        const navbar = document.getElementById("navbar");
+        const logo = document.querySelector(".logo");
+        const profileDropdown = document.getElementById("profileDropdown");
+
+        navbar.addEventListener("click", (event) => {
+            if (logo.contains(event.target)) return;
+            profileDropdown.classList.toggle("active");
+            document.getElementById("notificationDot").style.display = "none";
+        });
+
+        document.addEventListener("click", (event) => {
+            if (!navbar.contains(event.target) && !profileDropdown.contains(event.target)) {
+                profileDropdown.classList.remove("active");
+                const user = auth.currentUser;
+                if (user) loadNavbar(user.uid);
+            }
+        });
+    </script>
+    <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'91de9fb92b27138e',t:'MTc0MTU2NTc5Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+</body>
+</html>
